@@ -23,6 +23,13 @@ WiFly wifly(uart);
 HTTPClient http;
 char get;
 
+// IR Code
+int IR_ON_OFF = 0x32A650AF;
+int IR_VOL_UP = 0x32A6A857;
+int IR_VOL_DOWN = 0x32A638C7;
+int IR_CHN_UP = 0x32A6F807;
+int IR_CHN_DOWN = 0x32A67887;
+
 // Xiao's command findvars
 char *line = new char[1000];
 int linePos = 0;
@@ -78,19 +85,27 @@ void setup() {
   }
 
   wifly.sendCommand("set com remote 0\r");
+  Serial.println("Connected to network, start loop querying...");
 
-  Serial.println("\r\nTry to get url - " HTTP_GET_URL);
-  Serial.println("------------------------------");
-  while (http.get(HTTP_GET_URL, 10000) < 0) {
-  }
-
-  while (wifly.receive((uint8_t *)&get, 1, 1000) == 1) {
-    Serial.print(get);
-    if (getCommand(get) != -1) {
-      Serial.print("Detected command on char: ");
-      Serial.println(get);
+  while (1) {
+    Serial.println("------------------------------");
+    Serial.println("\r\nQuerying server for commands - " HTTP_GET_URL);
+    Serial.println("------------------------------");
+    while (http.get(HTTP_GET_URL, 10000) < 0) {
     }
 
+    while (wifly.receive((uint8_t *)&get, 1, 1000) == 1) {
+      //Serial.print(get);
+      int cmdId = getCommand(get);
+      if (cmdId != -1) {
+        Serial.print("Detected command on char: ");
+        Serial.print(get);
+        Serial.print("  cmd_id: ");
+        Serial.println(cmdId);
+        
+      }
+    }
+    delay(1);
   }
 
   Serial.println("\r\n\r\nTry to post data to url - " HTTP_POST_URL);
@@ -123,6 +138,7 @@ void loop() {
     }
   }
 }
+
 
 
 
