@@ -26,14 +26,18 @@ HTTPClient http;
 char get;
 
 // IR Code
-unsigned long IR_ON_OFF = 0x32A650AF;
-unsigned long IR_VOL_UP = 0x32A6A857;
+unsigned long IR_ON_OFF   = 0x32A650AF;
+unsigned long IR_VOL_UP   = 0x32A6A857;
 unsigned long IR_VOL_DOWN = 0x32A638C7;
-unsigned long IR_CHN_UP = 0x32A6F807;
+unsigned long IR_CHN_UP   = 0x32A6F807;
 unsigned long IR_CHN_DOWN = 0x32A67887;
 IRsend irsend;
 // board setup is easy! connect LED distroted pin to #3, and straight pin to GND
 
+// cmd id to IR code
+const int CMD_NO = 0;
+const int CMD_VOL_UP = 1;
+const int CMD_VOL_DOWN = 2;
 
 // Xiao's command findvars
 char *line = new char[1000];
@@ -67,7 +71,8 @@ int getCommand(char c) {
 
 void sendIRSignal(unsigned long signal, int repeat) {
   for (int i = 0; i < repeat; i++) {
-
+    irsend.sendNEC(signal, 32);
+    if (i < repeat - 1) delay(50);
   }
 }
 
@@ -123,15 +128,18 @@ void setup() {
         Serial.print("  cmd_id: ");
         Serial.println(cmdId);
 
-        Serial.println("Send IR signal");
-        irsend.sendNEC(IR_VOL_UP, 32);
-        delay(100);
-        irsend.sendNEC(IR_VOL_UP, 32);
-        delay(100);
-        irsend.sendNEC(IR_VOL_DOWN, 32);
-        delay(100);
-        irsend.sendNEC(IR_VOL_DOWN, 32);
-        delay(100);
+        switch (cmdId) {
+          case CMD_VOL_UP:
+            Serial.println("Vol up");
+            sendIRSignal(IR_VOL_UP, 5);
+            break;
+          case CMD_VOL_DOWN:
+            Serial.println("Vol down");
+            sendIRSignal(IR_VOL_DOWN, 5);
+            break;
+          default:
+            Serial.println("No IR action");
+        }
       }
     }
     delay(1);
@@ -167,6 +175,10 @@ void loop() {
     }
   }
 }
+
+
+
+
 
 
 
