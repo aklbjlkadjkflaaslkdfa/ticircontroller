@@ -1,4 +1,4 @@
-
+#include <IRremote.h>
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
@@ -14,6 +14,8 @@
 #define HTTP_POST_URL "http://httpbin.org/post"
 #define HTTP_POST_DATA "Hello world!"
 
+#define SEND_NEC
+
 // Pins' connection
 // Arduino       WiFly
 //  2    <---->    TX
@@ -24,11 +26,14 @@ HTTPClient http;
 char get;
 
 // IR Code
-int IR_ON_OFF = 0x32A650AF;
-int IR_VOL_UP = 0x32A6A857;
-int IR_VOL_DOWN = 0x32A638C7;
-int IR_CHN_UP = 0x32A6F807;
-int IR_CHN_DOWN = 0x32A67887;
+unsigned long IR_ON_OFF = 0x32A650AF;
+unsigned long IR_VOL_UP = 0x32A6A857;
+unsigned long IR_VOL_DOWN = 0x32A638C7;
+unsigned long IR_CHN_UP = 0x32A6F807;
+unsigned long IR_CHN_DOWN = 0x32A67887;
+IRsend irsend;
+// board setup is easy! connect LED distroted pin to #3, and straight pin to GND
+
 
 // Xiao's command findvars
 char *line = new char[1000];
@@ -60,6 +65,11 @@ int getCommand(char c) {
   return -1;
 }
 
+void sendIRSignal(unsigned long signal, int repeat) {
+  for (int i = 0; i < repeat; i++) {
+
+  }
+}
 
 
 void setup() {
@@ -72,6 +82,16 @@ void setup() {
   uart.begin(9600);         // WiFly UART Baud Rate: 9600
   // Wait WiFly to init
   //  delay(3000);
+
+  // IR setup
+  /*
+  Serial.println("Start IR setup");
+  pinMode(3, OUTPUT);
+  digitalWrite(3, HIGH);
+  delay(1000);
+  digitalWrite(3, LOW);
+  Serial.println("End IR setup");
+  */
 
   // check if WiFly is associated with AP(SSID)
   if (!wifly.isAssociated(SSID)) {
@@ -102,7 +122,16 @@ void setup() {
         Serial.print(get);
         Serial.print("  cmd_id: ");
         Serial.println(cmdId);
-        
+
+        Serial.println("Send IR signal");
+        irsend.sendNEC(IR_VOL_UP, 32);
+        delay(100);
+        irsend.sendNEC(IR_VOL_UP, 32);
+        delay(100);
+        irsend.sendNEC(IR_VOL_DOWN, 32);
+        delay(100);
+        irsend.sendNEC(IR_VOL_DOWN, 32);
+        delay(100);
       }
     }
     delay(1);
